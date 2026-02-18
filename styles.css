@@ -37,6 +37,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 
 header h1 {
@@ -115,19 +116,23 @@ header button:hover {
 
 /* --- Page Viewer --- */
 #viewer {
-    padding: 10px;
-    padding-bottom: 120px; /* Space for bottom button */
-    position: relative;
+    /* Allow scrolling when content is huge */
+    overflow: auto; 
+    /* Use flexbox to manage alignment */
+    display: flex; 
+    /* This ensures it fills the space */
+    flex: 1; 
     width: 100%;
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
+    position: relative;
+    /* Remove padding that might interfere with centering */
+    padding: 10px; 
+    padding-bottom: 120px; 
 }
 
 #pageContainer {
-    width: 100%;
-    max-width: 900px;
-    position: relative;
+    /* Allow transforms to spill out if needed, or contain them */
+    overflow: visible; 
+    touch-action: none; /* Critical: tells browser "I'm handling touches" */
 }
 .page {
     position: relative;
@@ -270,12 +275,12 @@ input[type=range] {
 
 /* --- Dark Mode Styles --- */
 body.dark-mode {
-    background: #121212;
+    background: #000000;
     color: #e0e0e0;
 }
 
 body.dark-mode #app {
-    background: #121212;
+    background: #000000;
 }
 
 body.dark-mode header {

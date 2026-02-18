@@ -12,6 +12,7 @@ let linesData = [];
 let resizeTimeout;
 
 let currentZoom = 1.0; 
+let pinchZoomer = null;
 
 
 // --- Settings State ---
@@ -208,6 +209,37 @@ async function renderPage(pageNum) {
         
     } catch (error) {
         console.error("Error rendering page:", error);
+    }
+    if (pinchZoomer) {
+        // If it exists, just update the element reference if needed or reset
+        pinchZoomer.reset();
+    } else {
+        const pageElement = document.querySelector('.page'); // Target the page wrapper
+        if (pageElement) {
+            pinchZoomer = new PinchZoom(pageElement, {
+                onZoomEnd: (newScale) => {
+                    // Update global zoom state
+                    // We multiply current zoom by the pinch delta
+                    // But to keep it simple, we might just re-render
+                    
+                    // Note: true re-rendering after every pinch can be slow.
+                    // For now, let's update the global currentZoom variable
+                    // currentZoom = currentZoom * newScale; 
+                    // renderPage(currentPage); 
+                    
+                    // Actually, a better UX is: 
+                    // 1. Let CSS handle the smooth zoom (PinchZoom class does this).
+                    // 2. Only re-render if the user pauses or releases for a high-quality update.
+                    
+                    if (Math.abs(newScale - 1) > 0.1) {
+                        currentZoom = currentZoom * newScale;
+                        // Clamp zoom
+                        currentZoom = Math.min(Math.max(currentZoom, 0.5), 4.0);
+                        renderPage(currentPage);
+                    }
+                }
+            });
+        }
     }
 }
 
