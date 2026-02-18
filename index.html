@@ -4,28 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2196F3">
+    <meta name="description" content="A PWA PDF Reader with line tracking and dark mode">
     <title>PDF Line Reader</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
+    <!-- Preload PDF.js for speed -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js" as="script">
 </head>
 <body>
     <div id="app">
+        <!-- HEADER -->
         <header>
-            <h1>PDF Line Reader</h1>
+            <h1>PDF Reader</h1>
+            
+            <div class="header-controls">
+                <!-- Theme Toggle -->
+                <button id="themeToggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">🌙</button>
+                
+                <!-- Fullscreen Toggle -->
+                <button id="fullscreenBtn" title="Fullscreen" aria-label="Fullscreen">⛶</button>
+                
+                <!-- Settings Toggle -->
+                <button id="settingsBtn" title="Settings" aria-label="Settings">⚙️</button>
+                
+                <!-- File Input Label (Icon) -->
+                <label for="fileInput" class="file-label" title="Open PDF" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%;">
+                    📂
+                </label>
+            </div>
+
+            <!-- Hidden File Input -->
             <input type="file" id="fileInput" accept="application/pdf">
         </header>
         
-        <div id="controls">
-            <button id="prevPage">Previous Page</button>
-            <span id="pageInfo">Page: - / -</span>
-            <button id="nextPage">Next Page</button>
+        <!-- SETTINGS PANEL (Hidden by default) -->
+        <div id="settingsPanel">
+            <div class="setting-row">
+                <label>Highlight Color</label>
+                <div class="color-options" id="colorPicker">
+                    <div class="color-dot" style="background: #FFEB3B;" data-color="#FFEB3B" title="Yellow"></div>
+                    <div class="color-dot" style="background: #3bb13f;" data-color="#4CAF50" title="Green"></div>
+                    <div class="color-dot" style="background: #2196F3;" data-color="#2196F3" title="Blue"></div>
+                    <div class="color-dot" style="background: #bdb9b2;" data-color="#bdb9b2" title="Orange"></div>
+                    <div class="color-dot" style="background: #E91E63;" data-color="#E91E63" title="Pink"></div>
+                </div>
+            </div>
+            
+                <div class="setting-row">
+                    <label>Highlight Thickness</label>
+                    <input type="range" id="thicknessSlider" min="2" max="12" value="6" step="1">
+                    <div style="font-size: 12px; color: #888; margin-top: 4px; text-align: right;">(Requires Page Refresh)</div>
+                    <label>Highlight Opacity</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="opacitySlider" min="10" max="100" value="35" step="2">
+                    <span id="opacityValue" style="font-size: 12px; width: 30px;">35%</span>
+                </div>
+            </div>
         </div>
 
+        <!-- NAVIGATION BUTTONS (Floating Left/Right) -->
+        <!-- No major changes needed here if you use the CSS above, 
+     but you can remove the arrow text if you want clean HTML -->
+<button id="prevPage" class="nav-btn prev" aria-label="Previous Page"></button>
+<button id="nextPage" class="nav-btn next" aria-label="Next Page"></button>
+
+
+        <!-- MAIN VIEWER -->
         <div id="viewer">
-            <div id="pageContainer"></div>
+            <div id="pageContainer">
+                <!-- Placeholder / Initial State -->
+                <div style="text-align: center; margin-top: 50px; color: #888;">
+                    <p>Tap the 📂 folder icon to open a PDF</p>
+                </div>
+            </div>
         </div>
+
+        <!-- PAGE INFO (Floating Bottom Left/Center) -->
+        <div id="pageInfo" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; pointer-events: none; z-index: 100;">
+            Page: - / -
+        </div>
+
+        <!-- JUMP BUTTON (Will be injected by JS) -->
+        <div id="tapArea">Jump to Next Line</div>
     </div>
 
+    <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="app.js"></script>
 </body>
