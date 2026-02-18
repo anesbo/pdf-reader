@@ -23,23 +23,44 @@ let highlightThickness = parseInt(localStorage.getItem('hlThickness')) || 6;
 const zoomInBtn = document.getElementById('zoomInBtn');
 const zoomOutBtn = document.getElementById('zoomOutBtn');
 
-if (zoomInBtn) {
-    zoomInBtn.addEventListener('click', () => {
-        if (currentZoom < 3.0) { // Max 3x zoom
-            currentZoom += 0.25;
-            renderPage(currentPage);
-        }
+// --- Helper to maintain scroll center ---
+function zoomWithCenter(newZoom) {
+    // 1. Get current scroll center ratio
+    const viewer = document.getElementById('viewer');
+    const scrollCenterX = (viewer.scrollLeft + viewer.clientWidth / 2) / viewer.scrollWidth;
+    const scrollCenterY = (viewer.scrollTop + viewer.clientHeight / 2) / viewer.scrollHeight;
+
+    // 2. Update zoom
+    currentZoom = newZoom;
+    
+    // 3. Render
+    renderPage(currentPage).then(() => {
+        // 4. Restore scroll center
+        // We wait for render to finish so scrollWidth/scrollHeight are updated
+        const newScrollX = (scrollCenterX * viewer.scrollWidth) - (viewer.clientWidth / 2);
+        const newScrollY = (scrollCenterY * viewer.scrollHeight) - (viewer.clientHeight / 2);
+        
+        viewer.scrollTo({
+            left: newScrollX,
+            top: newScrollY,
+            behavior: 'auto' // Instant jump, no animation to prevent dizziness
+        });
     });
 }
 
-if (zoomOutBtn) {
-    zoomOutBtn.addEventListener('click', () => {
-        if (currentZoom > 0.5) { // Min 0.5x zoom
-            currentZoom -= 0.25;
-            renderPage(currentPage);
-        }
-    });
-}
+// Update Listeners
+zoomInBtn.addEventListener('click', () => {
+    if (currentZoom < 3.0) {
+        zoomWithCenter(currentZoom + 0.25);
+    }
+});
+
+zoomOutBtn.addEventListener('click', () => {
+    if (currentZoom > 0.5) {
+        zoomWithCenter(currentZoom - 0.25);
+    }
+});
+
 // --- DOM Elements ---
 const fileInput = document.getElementById('fileInput');
 const pageContainer = document.getElementById('pageContainer');
