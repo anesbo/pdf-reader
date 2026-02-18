@@ -11,10 +11,34 @@ let currentLineIndex = 0;
 let linesData = [];
 let resizeTimeout;
 
+let currentZoom = 1.0; 
+
+
 // --- Settings State ---
 let highlightColor = localStorage.getItem('hlColor') || '#FFEB3B';
 let highlightThickness = parseInt(localStorage.getItem('hlThickness')) || 6;
 
+
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+if (zoomInBtn) {
+    zoomInBtn.addEventListener('click', () => {
+        if (currentZoom < 3.0) { // Max 3x zoom
+            currentZoom += 0.25;
+            renderPage(currentPage);
+        }
+    });
+}
+
+if (zoomOutBtn) {
+    zoomOutBtn.addEventListener('click', () => {
+        if (currentZoom > 0.5) { // Min 0.5x zoom
+            currentZoom -= 0.25;
+            renderPage(currentPage);
+        }
+    });
+}
 // --- DOM Elements ---
 const fileInput = document.getElementById('fileInput');
 const pageContainer = document.getElementById('pageContainer');
@@ -109,64 +133,81 @@ async function loadPDF(data) {
 }
 
 async function renderPage(pageNum) {
+    // Clear previous content
     pageContainer.innerHTML = '';
     linesData = [];
     
-    const page = await pdfDoc.getPage(pageNum);
-    
-    // Scale Calculation (Fit Width)
-    const viewportUnscaled = page.getViewport({ scale: 1.0 });
-    const containerWidth = pageContainer.clientWidth || (window.innerWidth - 20);
-    const cssScale = containerWidth / viewportUnscaled.width;
-    
-    const viewport = page.getViewport({ scale: cssScale });
-    const outputScale = window.devicePixelRatio || 1;
+    try {
+        const page = await pdfDoc.getPage(pageNum);
+        
+        // 1. Calculate Base Scale (Fit to Width)
+        // This ensures 1.0 zoom always perfectly fits the screen width
+        const viewportUnscaled = page.getViewport({ scale: 1.0 });
+        const containerWidth = pageContainer.clientWidth || (window.innerWidth - 20);
+        const fitWidthScale = containerWidth / viewportUnscaled.width;
+        
+        // 2. Apply Custom Zoom
+        // We multiply the "fit width" scale by our zoom factor
+        const finalScale = fitWidthScale * currentZoom;
+        
+        const viewport = page.getViewport({ scale: finalScale });
+        const outputScale = window.devicePixelRatio || 1;
 
-    // Create Page Wrapper
-    const pageDiv = document.createElement('div');
-    pageDiv.className = 'page';
-    pageDiv.style.width = `${viewport.width}px`;
-    pageDiv.style.height = `${viewport.height}px`;
-    pageDiv.style.position = 'relative'; 
-    pageContainer.appendChild(pageDiv);
+        // 3. Create Page Wrapper
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'page';
+        pageDiv.style.width = `${viewport.width}px`;
+        pageDiv.style.height = `${viewport.height}px`;
+        pageDiv.style.position = 'relative'; 
+        pageContainer.appendChild(pageDiv);
 
-    // Create Canvas
-    const canvas = document.createElement('canvas');
-    canvas.className = 'pdfCanvas';
-    const context = canvas.getContext('2d');
+        // 4. Create Canvas
+        const canvas = document.createElement('canvas');
+        canvas.className = 'pdfCanvas';
+        const context = canvas.getContext('2d');
 
-    canvas.width = Math.floor(viewport.width * outputScale);
-    canvas.height = Math.floor(viewport.height * outputScale);
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
+        // Set dimensions for high-DPI screens (sharp text)
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
-    pageDiv.appendChild(canvas);
+        pageDiv.appendChild(canvas);
 
-    const renderContext = {
-        canvasContext: context,
-        viewport: viewport,
-        transform: [outputScale, 0, 0, outputScale, 0, 0]
-    };
-    
-    await page.render(renderContext).promise;
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+            transform: [outputScale, 0, 0, outputScale, 0, 0]
+        };
+        
+        await page.render(renderContext).promise;
 
-    // Create Overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.style.width = `${viewport.width}px`;
-    overlay.style.height = `${viewport.height}px`;
-    pageDiv.appendChild(overlay);
+        // 5. Create Overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.style.width = `${viewport.width}px`;
+        overlay.style.height = `${viewport.height}px`;
+        pageDiv.appendChild(overlay);
 
-    // Detect Lines
-    const textContent = await page.getTextContent();
-    detectLines(textContent, viewport, overlay);
+        // 6. Detect Lines
+        const textContent = await page.getTextContent();
+        detectLines(textContent, viewport, overlay);
 
-    addTapArea();
-    
-    // Restore Position
-    if (linesData.length > 0) {
-        if (currentLineIndex >= linesData.length) currentLineIndex = 0;
-        setCurrentLine(currentLineIndex);
+        // 7. Add Floating Action Button
+        addTapArea();
+        
+        // 8. Restore Reading Position
+        // If we have lines and a saved index, scroll to it
+        if (linesData.length > 0) {
+            // Safety check: ensure index is within bounds (e.g., if PDF changed)
+            if (currentLineIndex >= linesData.length) currentLineIndex = 0;
+            
+            // Highlight the line without animation first time to prevent jarring jump
+            setCurrentLine(currentLineIndex);
+        }
+        
+    } catch (error) {
+        console.error("Error rendering page:", error);
     }
 }
 
