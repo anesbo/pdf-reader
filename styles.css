@@ -116,23 +116,33 @@ header button:hover {
 
 /* --- Page Viewer --- */
 #viewer {
-    /* Allow scrolling when content is huge */
-    overflow: auto; 
-    /* Use flexbox to manage alignment */
-    display: flex; 
-    /* This ensures it fills the space */
-    flex: 1; 
+    /* 1. Fill the screen space */
     width: 100%;
+    flex-grow: 1; /* Takes remaining vertical space */
     position: relative;
-    /* Remove padding that might interfere with centering */
-    padding: 10px; 
-    padding-bottom: 120px; 
+    
+    /* 2. Enable scrolling for zoomed content */
+    overflow: auto; 
+    
+    /* 3. Center content when it's smaller than the screen */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: flex-start; /* Start from top (don't center vertically or you lose the top!) */
+    
+    /* 4. Background for empty space */
+    background-color: #f0f2f5; 
 }
 
 #pageContainer {
-    /* Allow transforms to spill out if needed, or contain them */
-    overflow: visible; 
-    touch-action: none; /* Critical: tells browser "I'm handling touches" */
+    /* 5. Prevent shrinking */
+    flex-shrink: 0; 
+    
+    /* 6. Important: When zoomed out (small), margins auto-center it. 
+          When zoomed in (large), it just expands normally. */
+    margin: auto; 
+    
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .page {
     position: relative;
@@ -315,4 +325,7 @@ body.dark-mode .lineHitbox {
 
 body.dark-mode .nav-btn {
     color: #fff;
+}
+body.dark-mode #viewer {
+    background-color: #121212;
 }
