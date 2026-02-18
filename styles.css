@@ -33,7 +33,6 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -52,7 +51,7 @@ header .header-controls {
 }
 
 header button {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgb(23, 23, 23);
     border: none;
     color: white;
     width: 36px;
@@ -67,7 +66,7 @@ header button {
 }
 
 header button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(40, 40, 40, 0.3);
 }
 
 #fileInput {
@@ -147,7 +146,6 @@ header button:hover {
 .page {
     position: relative;
     margin: 0 auto 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     background: white;
     transition: filter 0.3s; /* Smooth dark mode transition */
 }
@@ -199,10 +197,10 @@ header button:hover {
     width: 90%;
     max-width: 320px;
     height: 56px;
-    background: #222222;
+    background: #000000;
     color: white;
     border-radius: 28px;
-    box-shadow: 0 4px 16px rgb(46, 46, 46);
+    box-shadow: 0 4px 16px rgb(22, 22, 22);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -294,7 +292,7 @@ body.dark-mode #app {
 }
 
 body.dark-mode header {
-    background: #1e1e1e;
+    background: #000000;
     border-bottom: 1px solid #333;
 }
 
@@ -327,5 +325,5 @@ body.dark-mode .nav-btn {
     color: #fff;
 }
 body.dark-mode #viewer {
-    background-color: #121212;
+    background-color: #000000;
 }
